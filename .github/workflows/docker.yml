@@ -23,7 +23,7 @@ jobs:
 
       - name: Build and Push
         run: |
-          IMAGE="YOUR_DOCKERHUB_USER/secure-crud"
+          IMAGE="sairam939/secure-crud"
           docker build -t $IMAGE:latest .
           docker tag $IMAGE:latest $IMAGE:${{ github.sha }}
           docker push $IMAGE:latest
