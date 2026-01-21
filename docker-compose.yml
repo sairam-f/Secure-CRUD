@@ -4,22 +4,30 @@ services:
   proxy:
     image: nginx:alpine
     ports:
-      - "80:80"
+      - "80:80"              # ONLY exposed port
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - app
+      app:
+        condition: service_healthy
 
   app:
     build: .
     environment:
+      PORT: 5000
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
       DB_NAME: ${DB_NAME}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/health', r=>process.exit(r.statusCode===200?0:1)).on('error', ()=>process.exit(1));"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   db:
     image: postgres:15-alpine
@@ -29,6 +37,11 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
 volumes:
   dbdata:
