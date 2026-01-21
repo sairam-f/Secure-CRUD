@@ -42,6 +42,7 @@ app.get("/tasks", async (req, res) => {
   res.json(rows);
 });
 
+
 app.post("/tasks", async (req, res) => {
   const title = (req.body?.title || "").trim();
   if (!title) return res.status(400).json({ error: "title is required" });
